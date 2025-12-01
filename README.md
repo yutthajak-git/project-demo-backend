@@ -44,12 +44,12 @@ PORT=3001
 Generate Prisma Client: สร้างโค้ดสำหรับเชื่อมต่อฐานข้อมูล
 
 ```
-bun run prisma generate
+bun x prisma generate
 ```
 
 Sync Database Schema (MongoDB): ตรวจสอบว่า DATABASE_URL ถูกต้อง และสั่งสร้าง/อัปเดต Collections ใน MongoDB
 ```
-bun run prisma db push
+bun x prisma db push
 ```
 
 # 5. Run Development Server
