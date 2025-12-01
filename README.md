@@ -27,16 +27,9 @@ bun install
 
 ```
 .env
-# ----------------------------------------------------
-# ELYSIA BACKEND & PRISMA CONFIG
-# ----------------------------------------------------
-
 # MongoDB Atlas(Cloud) Connection String
 # EXAMPLE: mongodb://user:password@host:port/databaseName
 DATABASE_URL="<YOUR_MONGODB_CONNECTION_STRING_HERE>"
-
-# Port สำหรับรัน Backend API (ใช้ 3001 เพื่อหลีกเลี่ยงการชนกับ Frontend:3000)
-PORT=3001
 ```
 
 # 4. Database Setup (สร้าง Schema และ Client)
