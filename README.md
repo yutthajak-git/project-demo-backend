@@ -56,7 +56,7 @@ bun x prisma db push
 เมื่อตั้งค่า Environment และ Database เสร็จแล้ว ให้รัน Dev Server:
 
 ```
-bun run dev
+bun dev
 ```
 
 Server จะรันอยู่ที่ http://localhost:3001
