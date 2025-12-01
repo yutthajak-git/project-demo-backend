@@ -1,0 +1,101 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// Enum สำหรับ Role ของผู้ใช้
+enum Role {
+  STUDENT // นักศึกษา
+  TEACHER // อาจารย์นิเทศก์
+}
+
+// Enum สถานะของฟอร์ม
+enum FormStatus {
+  DRAFT // บันทึกร่าง
+  SUBMITTED // ส่งแล้ว (รอตรวจ)
+  GRADED // ตรวจแล้ว
+}
+
+model User {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  username String @unique
+  password String // ในงานจริงควร Hash ก่อนเก็บ
+  name     String
+  role     Role
+
+  // Relation
+  // forms       InternshipForm[] // <--- ของเดิม (ลบออก)
+
+  // ของใหม่: แยก Relation ชัดเจน
+  createdForms  InternshipForm[] @relation("StudentOwner") // ฟอร์มที่นักศึกษาสร้าง
+  assignedForms InternshipForm[] @relation("AssignedTeacher") // ฟอร์มที่อาจารย์ได้รับมอบหมาย
+
+  evaluations Evaluation[] // การประเมินที่อาจารย์ทำ (ถ้าเป็น Teacher)
+}
+
+model InternshipForm {
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  status    FormStatus @default(DRAFT)
+
+  // --- ส่วนที่ 1: ข้อมูลส่วนตัวนักศึกษา ---
+  studentCode String? // รหัสนักศึกษา (เช่น 64xxxxxx)
+  idCard      String? // เลขบัตรประจำตัวประชาชน
+  prefix      String? // คำนำหน้า (นาย/นางสาว)
+  firstName   String? // ชื่อ
+  lastName    String? // นามสกุล
+  major       String? // สาขาวิชา
+  email       String? // E-mail
+  phone       String? // เบอร์โทรศัพท์
+
+  // --- ส่วนที่ 2: ข้อมูลสถานที่ฝึกสอน ---
+  schoolName  String? // ชื่อสถานศึกษา
+  province    String? // จังหวัด
+  district    String? // อำเภอ / เขต
+  affiliation String? // สังกัดสถานศึกษา
+  schoolSize  String? // ขนาดสถานศึกษา
+
+  // --- ส่วนที่ 3: ข้อมูลการปฏิบัติการสอน ---
+  subjectGroup  String? // กลุ่มสาระการเรียนรู้ / ประเภทวิชา
+  subjectName   String? // วิชาที่ปฏิบัติการสอน (ระบุชื่อรายวิชา)
+  majorRelation String? // ความสัมพันธ์ของวิชาเอกกับวิชาที่สอน
+
+  // Relation เชื่อมกับนักศึกษาเจ้าของฟอร์ม (User Account)
+  studentId String @db.ObjectId
+  student   User   @relation("StudentOwner", fields: [studentId], references: [id])
+
+  // New: Relation เชื่อมกับอาจารย์ที่นักศึกษาเลือกส่งให้
+  assignedTeacherId String? @db.ObjectId
+  assignedTeacher   User?   @relation("AssignedTeacher", fields: [assignedTeacherId], references: [id])
+
+  // Relation เชื่อมกับการประเมิน
+  evaluations Evaluation[]
+}
+
+model Evaluation {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime @default(now())
+
+  score    Float? // คะแนนที่ประเมิน
+  feedback String? // ข้อเสนอแนะจากอาจารย์
+
+  // เชื่อมกับฟอร์มที่ถูกประเมิน
+  formId String         @db.ObjectId
+  form   InternshipForm @relation(fields: [formId], references: [id])
+
+  // เชื่อมกับอาจารย์ผู้ประเมิน
+  teacherId String @db.ObjectId
+  teacher   User   @relation(fields: [teacherId], references: [id])
+}
